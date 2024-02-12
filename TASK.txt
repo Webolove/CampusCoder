@@ -1,0 +1,1 @@
+DELETE PreferenceNav from SRC -> COMPONENTS -> ADMIN 
