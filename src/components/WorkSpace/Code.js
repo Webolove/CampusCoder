@@ -53,7 +53,7 @@ export default function Code({ problemType, themeType, setTheme, setSelectedTab 
     }
 
     return (
-        <div className='p-2 h-full'>
+        <div className='p-2 h-full w-full'>
             <div className={`flex flex-col place-items-start justify-between rounded-xl text-white h-full overflow-hidden ${themeType == "Copilot" ? "bg-[#232b2e]" : themeType == "Github-Dark" ? "bg-[#0d1117]" : themeType == "Solarized" ? "bg-[#012b37]" : "bg-[#1e1f1f]"}`}>
                 <CodeTopBar formType={`${codeLang == "" ? "C++" : codeLang}`} setFormType={setCodeLang} formss={languages} theme={"dark"} settings={settings} setSettings={setSettings} themeType={themeType} setTheme={setTheme} setSelectedTab={setSelectedTab} />
                 <div className='overflow-scroll w-full h-full'>

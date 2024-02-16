@@ -1,177 +1,20 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { LuTags } from "react-icons/lu";
 import { FiCheckCircle } from "react-icons/fi";
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { AiFillDislike, AiFillLike, AiOutlineLoading3Quarters } from 'react-icons/ai';
-import toast from 'react-hot-toast';
-import { auth, firestore } from '@/firebase/firebase';
-import { doc, getDoc, runTransaction } from 'firebase/firestore';
+import DescSkeleton from '@/components/skeleton/DescSkeleton';
 
 
-export default function Description({ loading, ProblemMetaData, ProblemData, setProblemData }) {
-    const [viewTopic, setViewTopic] = useState(false);
-    const { liked, disliked, setData } = useGetUserInfoOnProblem(ProblemData.Id);
-    const [user] = useAuthState(auth);
-    const [updating, setUpdating] = useState(false);
-    const [solved, setSolved] = useState(false);
-
-    function useGetUserInfoOnProblem(ProblemId) {
-        const [data, setData] = useState({ liked: false, disliked: false });
-        const [user] = useAuthState(auth);
-        useEffect(() => {
-            const getUserData = async () => {
-                const userRef = doc(firestore, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    const userData = userSnap.data();
-                    const { likedProblems, dislikedProblems, solvedProblems } = userData;
-                    setData({
-                        liked: likedProblems.includes(ProblemId),
-                        disliked: dislikedProblems.includes(ProblemId),
-                    })
-                    if(solvedProblems.includes(ProblemId))
-                        setSolved(true);
-                }
-            }
-
-            if (user) getUserData();
-            return () => setData({ liked: false, disliked: false});
-        }, [ProblemId, user])
-
-        return { ...data, setData };
-    }
-
-    const handleLike = async () => {
-        if (!user) {
-            toast.error("Oops it seems you are not logged in !!")
-            return;
-        }
-
-        if (updating)
-            return;
-
-        setUpdating(true);
-        try {
-            await runTransaction(firestore, async (transaction) => {
-                const userRef = doc(firestore, 'users', user.uid);
-                const problemRef = doc(firestore, 'Problem', ProblemData.Id);
-
-                const userSnap = await transaction.get(userRef);
-                const problemSnap = await transaction.get(problemRef);
-
-                if (userSnap.exists() && problemSnap.exists()) {
-                    if (liked) {
-                        transaction.update(userRef, {
-                            likedProblems: userSnap.data().likedProblems.filter((id) => { id != ProblemData.Id })
-                        })
-
-                        transaction.update(problemRef, {
-                            likes: problemSnap.data().likes - 1
-                        })
-
-                        setProblemData(prev => ({ ...prev, likes: prev.likes - 1 }))
-                        setData(prev => ({ ...prev, liked: false }))
-                    } else if (disliked) {
-                        transaction.update(userRef, {
-                            likedProblems: [...userSnap.data().likedProblems, ProblemData.Id],
-                            dislikedProblems: userSnap.data().dislikedProblems.filter((id) => { id != ProblemData.Id })
-                        })
-
-                        transaction.update(problemRef, {
-                            likes: problemSnap.data().likes + 1,
-                            dislikes: problemSnap.data().dislikes - 1
-                        })
-
-                        setProblemData(prev => ({ ...prev, likes: prev.likes + 1, dislikes: prev.dislikes - 1 }));
-                        setData(prev => ({ liked: true, disliked: false }))
-                    } else {
-                        transaction.update(userRef, {
-                            likedProblems: [...userSnap.data().likedProblems, ProblemData.Id]
-                        })
-                        transaction.update(problemRef, {
-                            likes: problemSnap.data().likes + 1
-                        })
-
-                        setProblemData(prev => ({ ...prev, likes: prev.likes + 1 }))
-                        setData(prev => ({ ...prev, liked: true }))
-                    }
-                }
-            })
-        } catch (e) {
-            toast.error("Network Error.");
-        }
-        setUpdating(false);
-    }
-
-    const handleDislike = async () => {
-        if (!user) {
-            toast.error("Oops it seems you are not logged in !!")
-            return;
-        }
-
-        if (updating)
-            return;
-
-        setUpdating(true);
-        try {
-            await runTransaction(firestore, async (transaction) => {
-                const userRef = doc(firestore, 'users', user.uid);
-                const problemRef = doc(firestore, 'Problem', ProblemData.Id);
-
-                const userSnap = await transaction.get(userRef);
-                const problemSnap = await transaction.get(problemRef);
-
-                if (userSnap.exists() && problemSnap.exists()) {
-                    if (disliked) {
-                        transaction.update(userRef, {
-                            dislikedProblems: userSnap.data().dislikedProblems.filter((id) => { id != ProblemData.Id })
-                        })
-
-                        transaction.update(problemRef, {
-                            dislikes: problemSnap.data().dislikes - 1
-                        })
-
-                        setProblemData(prev => ({ ...prev, dislikes: prev.dislikes - 1 }))
-                        setData(prev => ({ ...prev, disliked: false }))
-                    } else if (liked) {
-                        transaction.update(userRef, {
-                            dislikedProblems: [...userSnap.data().dislikedProblems, ProblemData.Id],
-                            likedProblems: userSnap.data().likedProblems.filter((id) => { id != ProblemData.Id })
-                        })
-
-                        transaction.update(problemRef, {
-                            dislikes: problemSnap.data().dislikes + 1,
-                            likes: problemSnap.data().likes - 1
-                        })
-
-                        setProblemData(prev => ({ ...prev, likes: prev.likes - 1, dislikes: prev.dislikes + 1 }));
-                        setData(prev => ({ liked: false, disliked: true }))
-                    } else {
-                        transaction.update(userRef, {
-                            dislikedProblems: [...userSnap.data().dislikedProblems, ProblemData.Id]
-                        })
-                        transaction.update(problemRef, {
-                            dislikes: problemSnap.data().dislikes + 1
-                        })
-
-                        setProblemData(prev => ({ ...prev, dislikes: prev.dislikes + 1 }))
-                        setData(prev => ({ ...prev, disliked: true }))
-                    }
-                }
-            })
-        } catch (e) {
-            toast.error("Network issue.");
-        }
-        setUpdating(false);
-    }
-
+export default function Description({ loading, ProblemMetaData, ProblemData, viewTopic, setViewTopic, liked, disliked, updating, solved, handleDislike, handleLike }) {
 
     const difficultyColor = ProblemMetaData.difficulty == "easy" ? 'text-green-500' : ProblemMetaData.difficulty == "medium" ? "text-yellow-400" : "text-red-500";
 
     return (
         <>
             {
-                loading ? <div className='h-full flex flex-col place-items-start justify-start py-2 px-4 space-y-2 '>Loading</div> :
+                loading ? <div className='h-full py-2 px-4 space-y-2 w-full'>
+                    <DescSkeleton />
+                </div> :
                     (<div className='overflow-scroll h-full flex flex-col place-items-start justify-start py-2 px-4 space-y-2 pb-14'>
                         <div className='flex w-full place-items-center justify-between'>
                             <h1 className='text-2xl font-semibold'>
@@ -201,7 +44,7 @@ export default function Description({ loading, ProblemMetaData, ProblemData, set
                         <div className={`flex flex-wrap gap-2 place-items-center text-sm text-stone-300  transition-all ${viewTopic ? "scale-1 h-fit" : "scale-0 h-0"}`}>
                             {
                                 ProblemMetaData.topics.split(',').map((topic, idx) => (
-                                    <div className="bg-slate-600 p-0.5 px-3 rounded-xl first-letter:uppercase">{topic}</div>
+                                    <div className="bg-slate-600 p-0.5 px-3 rounded-xl first-letter:uppercase" key={idx}>{topic}</div>
                                 ))
                             }
                         </div>

@@ -1,0 +1,22 @@
+import React from 'react'
+
+export default function DescSkeleton({ height, width }) {
+    return (
+        <div className='space-y-2.5 animate-pulse'>
+            <div className="flex flex-col space-y-4 place-items-start justify-between w-full">
+                <div className={`h-16 w-full rounded-xl bg-slate-600`}></div>
+                <div className='flex space-x-2'>
+                    <div className={`h-6 w-14 rounded-xl bg-slate-600`}></div>
+                    <div className={`h-6 w-14 rounded-xl bg-slate-600`}></div>
+                    <div className={`h-6 w-6 rounded-full bg-slate-600`}></div>
+                    <div className={`h-6 w-6 rounded-full bg-slate-600`}></div>
+                    <div className={`h-6 w-6 rounded-full bg-slate-600`}></div>                    
+                </div>
+                <div className={`h-[300px] w-full rounded-xl bg-slate-600`}></div>
+                <div className={`h-4 w-full rounded-xl bg-slate-600`}></div>
+                <div className={`h-4 w-full rounded-xl bg-slate-600`}></div>
+                <div className={`h-4 w-full rounded-xl bg-slate-600`}></div>
+            </div>
+        </div>
+    )
+}

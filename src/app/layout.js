@@ -8,13 +8,14 @@ import { useEffect } from 'react'
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
+
 const inter = Inter({ subsets: ['latin'] })
 
 export default function RootLayout({ children }) {
-  useEffect(()=>{
+  useEffect(() => {
     AOS.init();
   }, [])
-    
+
   return (
     <RecoilRoot>
       <html lang="en">
@@ -24,12 +25,12 @@ export default function RootLayout({ children }) {
           <meta name='viewport' content='width=device-width, initial-scale=1' />
         </Head>
 
-        <body className={`${inter.className} font-[ubuntu]`}>
-          {children}
-          <Toaster />
+        <body className={`${inter.className}`}>
+            {children}
+            <Toaster />
         </body>
 
       </html>
-    </RecoilRoot>
+    </RecoilRoot >
   )
 }
